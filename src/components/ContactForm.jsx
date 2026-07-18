@@ -1,29 +1,28 @@
-import { useState } from 'react';
+import { useRef, useEffect, useContext } from 'react';
 import { nanoid } from 'nanoid';
+import ContactsContext from '../context/ContactsContext';
 
-export default function ContactForm({ onAdd }) {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export default function ContactForm() {
+  const nameRef = useRef(null);
+  const numberRef = useRef(null);
+  const { addContact } = useContext(ContactsContext);
 
-  const handleNameChange = (event) => {
-    setName(event.target.value);
-  };
-
-  const handleNumberChange = (event) => {
-    setNumber(event.target.value);
-  };
+  useEffect(() => {
+    if (nameRef.current) nameRef.current.focus();
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    onAdd({
-      id: nanoid(),
-      name,
-      number,
-    });
+    const name = nameRef.current.value.trim();
+    const number = numberRef.current.value.trim();
+    if (!name || !number) return;
 
-    setName('');
-    setNumber('');
+    addContact({ id: nanoid(), name, number });
+
+    nameRef.current.value = '';
+    numberRef.current.value = '';
+    nameRef.current.focus();
   };
 
   return (
@@ -31,10 +30,9 @@ export default function ContactForm({ onAdd }) {
       <label>
         Name
         <input
+          ref={nameRef}
           type="text"
           name="name"
-          value={name}
-          onChange={handleNameChange}
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
@@ -44,10 +42,9 @@ export default function ContactForm({ onAdd }) {
       <label>
         Number
         <input
+          ref={numberRef}
           type="tel"
           name="number"
-          value={number}
-          onChange={handleNumberChange}
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
